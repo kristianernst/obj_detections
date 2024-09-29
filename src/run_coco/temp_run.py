@@ -94,26 +94,26 @@ print("Registered datasets:", DatasetCatalog.list())
 
 
 train_mapper = DatasetMapper(
-    is_train=True,
-    augmentations=[
-        T.ResizeShortestEdge(
-            short_edge_length=(640, 672, 704, 736, 768, 800),
-            sample_style="choice",
-            max_size=1333,
-        ),
-        T.RandomFlip(horizontal=True),
-    ],
-    image_format="BGR",
-    use_instance_mask=True,
+  is_train=True,
+  augmentations=[
+    T.ResizeShortestEdge(
+      short_edge_length=(640, 672, 704, 736, 768, 800),
+      sample_style="choice",
+      max_size=1333,
+    ),
+    T.RandomFlip(horizontal=True),
+  ],
+  image_format="BGR",
+  use_instance_mask=True,
 )
 
 test_mapper = DatasetMapper(
-    is_train=False,
-    augmentations=[
-        T.ResizeShortestEdge(short_edge_length=800, max_size=1333),  # are not currently used
-        #  T.ResizeShortestEdge(short_edge_length=5000, max_size=5000)
-    ],
-    image_format="BGR",
+  is_train=False,
+  augmentations=[
+    T.ResizeShortestEdge(short_edge_length=800, max_size=1333),  # are not currently used
+    #  T.ResizeShortestEdge(short_edge_length=5000, max_size=5000)
+  ],
+  image_format="BGR",
 )
 
 
@@ -126,13 +126,13 @@ test_mapper = DatasetMapper(
 # )
 
 dataloader_test = build_detection_test_loader(
-    dataset=get_detection_dataset_dicts(names="coco_2017_val", filter_empty=False),
-    mapper=test_mapper,
-    num_workers=1,
+  dataset=get_detection_dataset_dicts(names="coco_2017_val", filter_empty=False),
+  mapper=test_mapper,
+  num_workers=1,
 )
 
 dataloader_evaluator = COCOEvaluator(
-    dataset_name="coco_2017_val",
+  dataset_name="coco_2017_val",
 )
 
 
@@ -181,127 +181,127 @@ dataloader_evaluator = COCOEvaluator(
 #         plt.show()
 
 if __name__ == "__main__":
-    # make a simple eval loop
-    import pickle
+  # make a simple eval loop
+  import pickle
 
-    import cv2
-    import numpy as np
-    import torch
-    import tqdm
-    from PIL import Image
+  import cv2
+  import numpy as np
+  import torch
+  import tqdm
+  from PIL import Image
 
-    # device = torch.device(
-    #     "cuda" if torch.cuda.is_available()
-    #     else "mps" if torch.backends.mps.is_available()
-    #     else "cpu"
-    # )
+  # device = torch.device(
+  #     "cuda" if torch.cuda.is_available()
+  #     else "mps" if torch.backends.mps.is_available()
+  #     else "cpu"
+  # )
 
-    device = torch.device("cpu")
-    print(f"Using device: {device}")
-    print("Loading model...")
-    WEIGHTS_PATH = os.path.join("models", "weights")
+  device = torch.device("cpu")
+  print(f"Using device: {device}")
+  print("Loading model...")
+  WEIGHTS_PATH = os.path.join("models", "weights")
 
-    model_names = ["vitdet_base", "vitdet_cascade_base", "vitdet_cascade_huge"]
-    model_name = model_names[2]
+  model_names = ["vitdet_base", "vitdet_cascade_base", "vitdet_cascade_huge"]
+  model_name = model_names[2]
 
-    base_weights = (
-        os.path.join(WEIGHTS_PATH, "model_final_61ccd1.pkl")
-        if model_name == "vitdet_base"
-        else os.path.join(WEIGHTS_PATH, "vitdet_cascade_base.pkl")
-        if model_name == "vitdet_cascade_base"
-        else os.path.join(WEIGHTS_PATH, "vitdet_cascade_huge.pkl")
-        if model_name == "vitdet_cascade_huge"
-        else None
-    )
+  base_weights = (
+    os.path.join(WEIGHTS_PATH, "model_final_61ccd1.pkl")
+    if model_name == "vitdet_base"
+    else os.path.join(WEIGHTS_PATH, "vitdet_cascade_base.pkl")
+    if model_name == "vitdet_cascade_base"
+    else os.path.join(WEIGHTS_PATH, "vitdet_cascade_huge.pkl")
+    if model_name == "vitdet_cascade_huge"
+    else None
+  )
 
-    if model_name is None:
-        raise ValueError(f"Model name {model_name} not found, check if the model is either of {', '.join(model_names)}")
+  if model_name is None:
+    raise ValueError(f"Model name {model_name} not found, check if the model is either of {', '.join(model_names)}")
 
-    model = (
-        VITDet
-        if model_name == "vitdet_base"
-        # else CascadeVITDet
-        # if model_name == "vitdet_cascade_base"
-        else CascadeVITDetHuge
-        if model_name == "vitdet_cascade_huge"
-        else None
-    )
+  model = (
+    VITDet
+    if model_name == "vitdet_base"
+    # else CascadeVITDet
+    # if model_name == "vitdet_cascade_base"
+    else CascadeVITDetHuge
+    if model_name == "vitdet_cascade_huge"
+    else None
+  )
 
-    if model is None:
-        raise ValueError(f"Model {model_name} not found, check if the model is either of {', '.join(model_names)}")
+  if model is None:
+    raise ValueError(f"Model {model_name} not found, check if the model is either of {', '.join(model_names)}")
 
-    # checkpointer = DetectionCheckpointer(model)
-    # checkpointer.load(base_weights)
+  # checkpointer = DetectionCheckpointer(model)
+  # checkpointer.load(base_weights)
 
-    model = load_model(model, base_weights)
-    model.eval()
-    model.to(device)
+  model = load_model(model, base_weights)
+  model.eval()
+  model.to(device)
 
-    max_width = 1300
-    max_height = 800
-    use_one_img = True
-    asset_dir = "assets"
-    test_images_dir = os.path.join(asset_dir, "test_images")
-    in_dir = os.path.join(test_images_dir, "in")
-    out_dir = os.path.join(test_images_dir, "out", model_name)
-    os.makedirs(out_dir, exist_ok=True)
+  max_width = 1300
+  max_height = 800
+  use_one_img = True
+  asset_dir = "assets"
+  test_images_dir = os.path.join(asset_dir, "test_images")
+  in_dir = os.path.join(test_images_dir, "in")
+  out_dir = os.path.join(test_images_dir, "out", model_name)
+  os.makedirs(out_dir, exist_ok=True)
 
-    SENSITIVITY_THRESH = 0.6
+  SENSITIVITY_THRESH = 0.6
 
-    # filename = "b.jpg"
-    filenames = os.listdir(in_dir)
-    filenames = [filename for filename in filenames if filename.endswith(".jpg")]
+  # filename = "b.jpg"
+  filenames = os.listdir(in_dir)
+  filenames = [filename for filename in filenames if filename.endswith(".jpg")]
 
-    # tqdm
+  # tqdm
 
-    for filename in tqdm.tqdm(filenames):
-        image_path = os.path.join(in_dir, filename)
-        image = Image.open(image_path)
-        print(f"processing image: {filename}")
-        # find the aspect ratio
-        image = np.array(image, dtype=np.uint8)
-        # ive found that the max width is around 1000, so we need to scale the width, and the height needs to be scaled to height * aspect_ratio
-        image = resize_image(image, max_width, max_height)
-        image = np.moveaxis(image, -1, 0)  # the model expects the image to be in channel first format
-        if use_one_img:
-            images = [image]
+  for filename in tqdm.tqdm(filenames):
+    image_path = os.path.join(in_dir, filename)
+    image = Image.open(image_path)
+    print(f"processing image: {filename}")
+    # find the aspect ratio
+    image = np.array(image, dtype=np.uint8)
+    # ive found that the max width is around 1000, so we need to scale the width, and the height needs to be scaled to height * aspect_ratio
+    image = resize_image(image, max_width, max_height)
+    image = np.moveaxis(image, -1, 0)  # the model expects the image to be in channel first format
+    if use_one_img:
+      images = [image]
+    else:
+      # if image is very wide, split into 2.
+      c, img_height, img_width = image.shape
+      img_width_half = img_width // 2
+      image_1 = image[:, :, :img_width_half]
+      image_2 = image[:, :, img_width_half:]
+      images = [image_1, image_2]
+
+    with torch.inference_mode():
+      for i, img in enumerate(images):
+        output = model([{"image": torch.from_numpy(img).to(device)}])
+        # img is a np array, we need to convert it to a tensor
+        img_tensor = torch.from_numpy(img)
+        img_conv = torch.einsum("chw->hwc", img_tensor)
+        img_conv = img_conv.numpy()
+        # img_conv = torch.einsum("chw->hwc", img_tensor)
+        visualizer = Visualizer(img_conv, metadata=test_metadata, scale=1.2)
+        instances = output[0]["instances"].to("cpu")
+        # only take the instances with a score greater than 0.9 and only the first 4 instances
+        instances = instances[instances.scores > SENSITIVITY_THRESH]  # [:10]
+
+        visualized_output = visualizer.draw_instance_predictions(instances)
+        if len(images) > 1:
+          out_filename = f"{filename.split('.')[0]}_out_{i}.png"
         else:
-            # if image is very wide, split into 2.
-            c, img_height, img_width = image.shape
-            img_width_half = img_width // 2
-            image_1 = image[:, :, :img_width_half]
-            image_2 = image[:, :, img_width_half:]
-            images = [image_1, image_2]
+          out_filename = f"{filename.split('.')[0]}_out.png"
+        visualized_output.save(os.path.join(out_dir, out_filename))
+      # # model = VITDet
+  # # does not seem to work
+  # # model.roi_heads.box_predictor.test_score_thresh = 0.7
+  # # model.roi_heads.num_classes = 1
+  # # model.roi_heads.mask_head.num_classes = 1
+  # # model.roi_heads.box_predictor.num_classes = 1
 
-        with torch.inference_mode():
-            for i, img in enumerate(images):
-                output = model([{"image": torch.from_numpy(img).to(device)}])
-                # img is a np array, we need to convert it to a tensor
-                img_tensor = torch.from_numpy(img)
-                img_conv = torch.einsum("chw->hwc", img_tensor)
-                img_conv = img_conv.numpy()
-                # img_conv = torch.einsum("chw->hwc", img_tensor)
-                visualizer = Visualizer(img_conv, metadata=test_metadata, scale=1.2)
-                instances = output[0]["instances"].to("cpu")
-                # only take the instances with a score greater than 0.9 and only the first 4 instances
-                instances = instances[instances.scores > SENSITIVITY_THRESH]  # [:10]
+  # # model = load_model(model, base_weights)
 
-                visualized_output = visualizer.draw_instance_predictions(instances)
-                if len(images) > 1:
-                    out_filename = f"{filename.split('.')[0]}_out_{i}.png"
-                else:
-                    out_filename = f"{filename.split('.')[0]}_out.png"
-                visualized_output.save(os.path.join(out_dir, out_filename))
-            # # model = VITDet
-    # # does not seem to work
-    # # model.roi_heads.box_predictor.test_score_thresh = 0.7
-    # # model.roi_heads.num_classes = 1
-    # # model.roi_heads.mask_head.num_classes = 1
-    # # model.roi_heads.box_predictor.num_classes = 1
+  # print("Evaluating model...")
 
-    # # model = load_model(model, base_weights)
-
-    # print("Evaluating model...")
-
-    # #evaluate_model(model, dataloader_test, dataloader_evaluator)
-    # visualize_sample(model, dataloader_test, num_samples=1)
+  # #evaluate_model(model, dataloader_test, dataloader_evaluator)
+  # visualize_sample(model, dataloader_test, num_samples=1)

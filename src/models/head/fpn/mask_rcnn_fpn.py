@@ -20,13 +20,13 @@ NUM_CLASSES = 80
 backbone = 1
 
 standard_rpn_head = StandardRPNHead(
-    in_channels=256, num_anchors=3, conv_dims=[-1, -1]
+  in_channels=256, num_anchors=3, conv_dims=[-1, -1]
 )  # conv dims is taken from https://github.com/facebookresearch/detectron2/blob/main/configs/common/models/mask_rcnn_vitdet.py
 default_anchor_generator = DefaultAnchorGenerator(
-    sizes=[[32], [64], [128], [256], [512]],
-    aspect_ratios=[0.5, 1.0, 2.0],
-    strides=[4, 8, 16, 32, 64],
-    offset=0.0,
+  sizes=[[32], [64], [128], [256], [512]],
+  aspect_ratios=[0.5, 1.0, 2.0],
+  strides=[4, 8, 16, 32, 64],
+  offset=0.0,
 )
 
 anchor_matcher = Matcher(thresholds=[0.3, 0.7], labels=[0, -1, 1], allow_low_quality_matches=True)
@@ -35,78 +35,78 @@ anchor_matcher = Matcher(thresholds=[0.3, 0.7], labels=[0, -1, 1], allow_low_qua
 box2box_transform = Box2BoxTransform(weights=(1.0, 1.0, 1.0, 1.0))
 
 proposal_generator = RPN(
-    in_features=["p2", "p3", "p4", "p5", "p6"],
-    head=standard_rpn_head,
-    anchor_generator=default_anchor_generator,
-    anchor_matcher=anchor_matcher,
-    box2box_transform=box2box_transform,
-    batch_size_per_image=256,
-    positive_fraction=0.5,
-    pre_nms_topk=(2000, 1000),
-    post_nms_topk=(1000, 1000),
-    nms_thresh=0.7,
+  in_features=["p2", "p3", "p4", "p5", "p6"],
+  head=standard_rpn_head,
+  anchor_generator=default_anchor_generator,
+  anchor_matcher=anchor_matcher,
+  box2box_transform=box2box_transform,
+  batch_size_per_image=256,
+  positive_fraction=0.5,
+  pre_nms_topk=(2000, 1000),
+  post_nms_topk=(1000, 1000),
+  nms_thresh=0.7,
 )
 
 
 roi_head_matcher = Matcher(thresholds=[0.5], labels=[0, 1], allow_low_quality_matches=False)
 
 roi_pooler = ROIPooler(
-    output_size=7,
-    scales=(1.0 / 4, 1.0 / 8, 1.0 / 16, 1.0 / 32),
-    sampling_ratio=0,
-    pooler_type="ROIAlignV2",
+  output_size=7,
+  scales=(1.0 / 4, 1.0 / 8, 1.0 / 16, 1.0 / 32),
+  sampling_ratio=0,
+  pooler_type="ROIAlignV2",
 )
 
 roi_box_head = FastRCNNConvFCHead(
-    input_shape=ShapeSpec(channels=256, height=7, width=7),
-    conv_dims=[],
-    fc_dims=[1024, 1024],
+  input_shape=ShapeSpec(channels=256, height=7, width=7),
+  conv_dims=[],
+  fc_dims=[1024, 1024],
 )
 
 box2box_predictor_transform = Box2BoxTransform(weights=(10, 10, 5, 5))
 
 box_predictor = FastRCNNOutputLayers(
-    input_shape=ShapeSpec(channels=1024),
-    test_score_thresh=0.05,
-    box2box_transform=box2box_predictor_transform,
-    num_classes=NUM_CLASSES,
+  input_shape=ShapeSpec(channels=1024),
+  test_score_thresh=0.05,
+  box2box_transform=box2box_predictor_transform,
+  num_classes=NUM_CLASSES,
 )
 
 mask_pooler = ROIPooler(
-    output_size=14,
-    scales=(1.0 / 4, 1.0 / 8, 1.0 / 16, 1.0 / 32),
-    sampling_ratio=0,
-    pooler_type="ROIAlignV2",
+  output_size=14,
+  scales=(1.0 / 4, 1.0 / 8, 1.0 / 16, 1.0 / 32),
+  sampling_ratio=0,
+  pooler_type="ROIAlignV2",
 )
 
 mask_head = MaskRCNNConvUpsampleHead(
-    input_shape=ShapeSpec(channels=256, width=14, height=14),
-    num_classes=NUM_CLASSES,
-    conv_dims=[256, 256, 256, 256, 256],
+  input_shape=ShapeSpec(channels=256, width=14, height=14),
+  num_classes=NUM_CLASSES,
+  conv_dims=[256, 256, 256, 256, 256],
 )
 
 roi_heads = StandardROIHeads(
-    num_classes=80,
-    batch_size_per_image=512,
-    positive_fraction=0.25,
-    proposal_matcher=roi_head_matcher,
-    box_in_features=["p2", "p3", "p4", "p5"],
-    box_pooler=roi_pooler,
-    box_head=roi_box_head,
-    box_predictor=box_predictor,
-    mask_in_features=["p2", "p3", "p4", "p5"],
-    mask_pooler=mask_pooler,
-    mask_head=mask_head,
+  num_classes=80,
+  batch_size_per_image=512,
+  positive_fraction=0.25,
+  proposal_matcher=roi_head_matcher,
+  box_in_features=["p2", "p3", "p4", "p5"],
+  box_pooler=roi_pooler,
+  box_head=roi_box_head,
+  box_predictor=box_predictor,
+  mask_in_features=["p2", "p3", "p4", "p5"],
+  mask_pooler=mask_pooler,
+  mask_head=mask_head,
 )
 
 
 model = GeneralizedRCNN(
-    backbone=backbone,
-    proposal_generator=proposal_generator,
-    roi_heads=roi_heads,
-    pixel_mean=torch.Tensor(constants["imagenet_bgr256_mean"]),
-    pixel_std=torch.Tensor(constants["imagenet_bgr256_std"]),
-    input_format="BGR",
+  backbone=backbone,
+  proposal_generator=proposal_generator,
+  roi_heads=roi_heads,
+  pixel_mean=torch.Tensor(constants["imagenet_bgr256_mean"]),
+  pixel_std=torch.Tensor(constants["imagenet_bgr256_std"]),
+  input_format="BGR",
 )
 
 

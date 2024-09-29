@@ -1,6 +1,6 @@
-indent-width = 4
+indent-width = 2
 preview = true
-line-length = 130
+line-length = 140
 
 
 [format]

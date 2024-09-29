@@ -1,0 +1,12 @@
+indent-width = 2
+preview = true
+line-length = 140
+
+
+[format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+docstring-code-format = true
+docstring-code-line-length = "dynamic"

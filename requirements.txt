@@ -1,0 +1,4 @@
+pycocotools==2.0.8
+cloudpickle==3.0.0
+omegaconf==2.3.0
+opencv-contrib-python==4.10.0.84

@@ -1,2 +1,8 @@
 .env
 __pycache__
+.cursorignore
+models/wplots
+.ruff_cache
+datasets
+src/assets/*
+src/models/weights/*

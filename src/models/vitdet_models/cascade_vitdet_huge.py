@@ -143,20 +143,5 @@ CascadeVITDetHuge = GeneralizedRCNN(
   input_format="RGB",
 )
 
-# # update the model so now it contains the cascade roi heads, and the rest of the model is the same as the original vitdet model
-
-# model.roi_heads = cascade_roi_heads
-# model.backbone.net.embed_dim = 1280
-# model.backbone.net.depth = 32
-# model.backbone.net.num_heads = 16
-# model.backbone.net.drop_path_rate = 0.5
-# # 7, 15, 23, 31 for global attention
-# model.backbone.net.window_block_indexes = list(range(0, 7)) + list(range(8, 15)) + list(range(16, 23)) + list(range(24, 31))
-
-
-# # clone the model so we can save it as cascade_vitdet_huge
-# CascadeVITDetHuge = deepcopy(model)
-
-
 if __name__ == "__main__":
   print(f"number of blocks in backbone: {len(CascadeVITDetHuge.backbone.net.blocks)}")

@@ -3,7 +3,6 @@ from functools import partial
 import torch
 import torch.nn as nn
 
-# from models.head.fpn.mask_rcnn_fpn import model
 from models.backbone.vit import SimpleFeaturePyramid, ViT
 from models.head.generators.anchor_generator import DefaultAnchorGenerator
 from models.head.generators.box_regression import Box2BoxTransform
@@ -17,10 +16,6 @@ from models.head.roi.roi_heads import StandardROIHeads
 from models.layers import LastLevelMaxPool, ShapeSpec
 from models.poolers import ROIPooler
 from util.vars import constants
-
-# model.pixel_mean = torch.Tensor(constants['imagenet_rgb256_mean'])
-# model.pixel_std = torch.Tensor(constants['imagenet_rgb256_std'])
-# model.input_format = "RGB"
 
 
 embed_dim, depth, num_heads, dp = 768, 12, 12, 0.1
